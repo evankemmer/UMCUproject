@@ -1,7 +1,9 @@
 import os
-import pandas as pd
+import pandas as pd, numpy as np
 from scipy.io import loadmat
 import matplotlib.pyplot as plt
+from nltk.corpus import cmudict
+from numpy import linalg as LA
 
 def get_srate(file_number):
     directory = 'data/Data/F1/mat'
@@ -116,4 +118,42 @@ def make_trajectory_plot(word_dataframe, fixed_axes=False, twoD=False):
     plt.legend(loc = 'lower left')
     plt.title(str(word_dataframe['word'][0]) + ', ' + str(word_dataframe['sent'][0]))
     plt.show()
+
+def nsyl(word):
+    try:
+        return [len(list(y for y in x if y[-1].isdigit())) for x in d[word.lower()]]
+    except KeyError:
+        #if word not found in cmudict
+        return syllables(word)
     
+def syllables(word):
+    #referred from stackoverflow.com/questions/14541303/count-the-number-of-syllables-in-a-word
+    count = 0
+    vowels = 'aeiouy'
+    word = word.lower()
+    if word[0] in vowels:
+        count +=1
+    for index in range(1,len(word)):
+        if word[index] in vowels and word[index-1] not in vowels:
+            count +=1
+    if word.endswith('e'):
+        count -= 1
+    if word.endswith('le'):
+        count += 1
+    if count == 0:
+        count += 1
+    return count
+
+def longest(dictionary):
+    biggest = 0
+    for word in dictionary:
+        length = len(dictionary[word].at[0, 'ULx'])
+        if length > biggest:
+            biggest = length
+        
+    return biggest
+
+def frobenius_norm(matrix_a, matrix_b):
+    difference_matrix = np.subtract(matrix_a, matrix_b)
+    frob_norm = LA.norm(difference_matrix)
+    return frob_norm
